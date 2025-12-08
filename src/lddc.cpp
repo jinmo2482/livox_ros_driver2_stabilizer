@@ -26,6 +26,7 @@
 #include "comm/ldq.h"
 #include "comm/comm.h"
 
+#include <functional>
 #include <inttypes.h>
 #include <iostream>
 #include <iomanip>
@@ -42,13 +43,18 @@ namespace livox_ros {
 /** Lidar Data Distribute Control--------------------------------------------*/
 #ifdef BUILDING_ROS1
 Lddc::Lddc(int format, int multi_topic, int data_src, int output_type,
-    double frq, std::string &frame_id, bool lidar_bag, bool imu_bag)
+    double frq, std::string &frame_id, bool lidar_bag, bool imu_bag,
+    bool stabilize_point_cloud, const std::string &imu_topic)
     : transfer_format_(format),
       use_multi_topic_(multi_topic),
       data_src_(data_src),
       output_type_(output_type),
       publish_frq_(frq),
       frame_id_(frame_id),
+      stabilize_point_cloud_(stabilize_point_cloud),
+      imu_topic_(imu_topic),
+      imu_orientation_(Eigen::Quaterniond::Identity()),
+      imu_ready_(false),
       enable_lidar_bag_(lidar_bag),
       enable_imu_bag_(imu_bag) {
   publish_period_ns_ = kNsPerSecond / publish_frq_;
@@ -62,18 +68,23 @@ Lddc::Lddc(int format, int multi_topic, int data_src, int output_type,
 }
 #elif defined BUILDING_ROS2
 Lddc::Lddc(int format, int multi_topic, int data_src, int output_type,
-           double frq, std::string &frame_id)
+           double frq, std::string &frame_id, bool stabilize_point_cloud, const std::string &imu_topic)
     : transfer_format_(format),
       use_multi_topic_(multi_topic),
       data_src_(data_src),
       output_type_(output_type),
       publish_frq_(frq),
-      frame_id_(frame_id) {
+      frame_id_(frame_id),
+      stabilize_point_cloud_(stabilize_point_cloud),
+      imu_topic_(imu_topic),
+      imu_orientation_(Eigen::Quaterniond::Identity()),
+      imu_ready_(false) {
   publish_period_ns_ = kNsPerSecond / publish_frq_;
   lds_ = nullptr;
 #if 0
   bag_ = nullptr;
 #endif
+  cur_node_ = nullptr;
 }
 #endif
 
@@ -104,6 +115,13 @@ Lddc::~Lddc() {
   }
 #endif
   std::cout << "lddc destory!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+}
+
+void Lddc::SetRosNode(livox_ros::DriverNode *node) {
+  cur_node_ = node;
+  if (stabilize_point_cloud_) {
+    SetupImuListener();
+  }
 }
 
 int Lddc::RegisterLds(Lds *lds) {
@@ -318,14 +336,15 @@ void Lddc::InitPointcloud2Msg(const StoragePacket& pkg, PointCloud2& cloud, uint
 
   std::vector<LivoxPointXyzrtlt> points;
   for (size_t i = 0; i < pkg.points_num; ++i) {
+    const PointXyzlt stabilized_point = StabilizePoint(pkg.points[i]);
     LivoxPointXyzrtlt point;
-    point.x = pkg.points[i].x;
-    point.y = pkg.points[i].y;
-    point.z = pkg.points[i].z;
-    point.reflectivity = pkg.points[i].intensity;
-    point.tag = pkg.points[i].tag;
-    point.line = pkg.points[i].line;
-    point.timestamp = static_cast<double>(pkg.points[i].offset_time);
+    point.x = stabilized_point.x;
+    point.y = stabilized_point.y;
+    point.z = stabilized_point.z;
+    point.reflectivity = stabilized_point.intensity;
+    point.tag = stabilized_point.tag;
+    point.line = stabilized_point.line;
+    point.timestamp = static_cast<double>(stabilized_point.offset_time);
     points.push_back(std::move(point));
   }
   cloud.data.resize(pkg.points_num * sizeof(LivoxPointXyzrtlt));
@@ -385,14 +404,15 @@ void Lddc::FillPointsToCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg)
   uint32_t points_num = pkg.points_num;
   const std::vector<PointXyzlt>& points = pkg.points;
   for (uint32_t i = 0; i < points_num; ++i) {
+    const PointXyzlt stabilized_point = StabilizePoint(points[i]);
     CustomPoint point;
-    point.x = points[i].x;
-    point.y = points[i].y;
-    point.z = points[i].z;
-    point.reflectivity = points[i].intensity;
-    point.tag = points[i].tag;
-    point.line = points[i].line;
-    point.offset_time = static_cast<uint32_t>(points[i].offset_time - pkg.base_time);
+    point.x = stabilized_point.x;
+    point.y = stabilized_point.y;
+    point.z = stabilized_point.z;
+    point.reflectivity = stabilized_point.intensity;
+    point.tag = stabilized_point.tag;
+    point.line = stabilized_point.line;
+    point.offset_time = static_cast<uint32_t>(stabilized_point.offset_time - pkg.base_time);
 
     livox_msg.points.push_back(std::move(point));
   }
@@ -443,11 +463,12 @@ void Lddc::FillPointsToPclMsg(const StoragePacket& pkg, PointCloud& pcl_msg) {
   uint32_t points_num = pkg.points_num;
   const std::vector<PointXyzlt>& points = pkg.points;
   for (uint32_t i = 0; i < points_num; ++i) {
+    const PointXyzlt stabilized_point = StabilizePoint(points[i]);
     pcl::PointXYZI point;
-    point.x = points[i].x;
-    point.y = points[i].y;
-    point.z = points[i].z;
-    point.intensity = points[i].intensity;
+    point.x = stabilized_point.x;
+    point.y = stabilized_point.y;
+    point.z = stabilized_point.z;
+    point.intensity = stabilized_point.intensity;
 
     pcl_msg.points.push_back(std::move(point));
   }
@@ -521,6 +542,64 @@ void Lddc::PublishImuData(LidarImuDataQueue& imu_data_queue, const uint8_t index
     }
 #endif
   }
+}
+
+PointXyzlt Lddc::StabilizePoint(const PointXyzlt& point) {
+  if (!stabilize_point_cloud_) {
+    return point;
+  }
+
+  std::lock_guard<std::mutex> lock(imu_orientation_mutex_);
+  if (!imu_ready_) {
+    return point;
+  }
+
+  Eigen::Quaterniond orientation = imu_orientation_;
+  const double norm = orientation.norm();
+  if (norm < 1e-6) {
+    return point;
+  }
+  orientation.normalize();
+
+  Eigen::Vector3d source(point.x, point.y, point.z);
+  Eigen::Vector3d rotated = orientation * source;
+
+  PointXyzlt stabilized_point = point;
+  stabilized_point.x = static_cast<float>(rotated.x());
+  stabilized_point.y = static_cast<float>(rotated.y());
+  stabilized_point.z = static_cast<float>(rotated.z());
+  return stabilized_point;
+}
+
+void Lddc::SetupImuListener() {
+  if (!cur_node_) {
+    return;
+  }
+
+#ifdef BUILDING_ROS1
+  imu_subscriber_ = cur_node_->subscribe<ImuMsg>(imu_topic_, 50, &Lddc::ImuCallback, this);
+#elif defined BUILDING_ROS2
+  imu_subscriber_ = cur_node_->create_subscription<ImuMsg>(
+      imu_topic_, rclcpp::SensorDataQoS(),
+      std::bind(&Lddc::ImuCallback, this, std::placeholders::_1));
+#endif
+}
+
+#ifdef BUILDING_ROS1
+void Lddc::ImuCallback(const ImuMsg::ConstPtr& msg) {
+#elif defined BUILDING_ROS2
+void Lddc::ImuCallback(const ImuMsg::SharedPtr msg) {
+#endif
+  Eigen::Quaterniond orientation(msg->orientation.w, msg->orientation.x,
+                                 msg->orientation.y, msg->orientation.z);
+  const double norm = orientation.norm();
+  if (norm < 1e-6) {
+    return;
+  }
+
+  std::lock_guard<std::mutex> lock(imu_orientation_mutex_);
+  imu_orientation_ = orientation.normalized();
+  imu_ready_ = true;
 }
 
 #ifdef BUILDING_ROS2

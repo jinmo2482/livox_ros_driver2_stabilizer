@@ -27,6 +27,10 @@
 
 #include "include/livox_ros_driver2.h"
 
+#include <mutex>
+
+#include <Eigen/Geometry>
+
 #include "driver_node.h"
 #include "lds.h"
 
@@ -73,10 +77,11 @@ class Lddc final {
  public:
 #ifdef BUILDING_ROS1
   Lddc(int format, int multi_topic, int data_src, int output_type, double frq,
-      std::string &frame_id, bool lidar_bag, bool imu_bag);
+      std::string &frame_id, bool lidar_bag, bool imu_bag,
+      bool stabilize_point_cloud, const std::string &imu_topic);
 #elif defined BUILDING_ROS2
   Lddc(int format, int multi_topic, int data_src, int output_type, double frq,
-      std::string &frame_id);
+      std::string &frame_id, bool stabilize_point_cloud, const std::string &imu_topic);
 #endif
   ~Lddc();
 
@@ -88,7 +93,7 @@ class Lddc final {
 
   uint8_t GetTransferFormat(void) { return transfer_format_; }
   uint8_t IsMultiTopic(void) { return use_multi_topic_; }
-  void SetRosNode(livox_ros::DriverNode *node) { cur_node_ = node; }
+  void SetRosNode(livox_ros::DriverNode *node);
 
   // void SetRosPub(ros::Publisher *pub) { global_pub_ = pub; };  // NOT USED
   void SetPublishFrq(uint32_t frq) { publish_frq_ = frq; }
@@ -124,6 +129,14 @@ class Lddc final {
   void FillPointsToCustomMsg(CustomMsg& livox_msg, LivoxPointXyzrtlt* src_point, uint32_t num,
       uint32_t offset_time, uint32_t point_interval, uint32_t echo_num);
 
+  PointXyzlt StabilizePoint(const PointXyzlt& point);
+  void SetupImuListener();
+#ifdef BUILDING_ROS1
+  void ImuCallback(const ImuMsg::ConstPtr& msg);
+#elif defined BUILDING_ROS2
+  void ImuCallback(const ImuMsg::SharedPtr msg);
+#endif
+
 #ifdef BUILDING_ROS2
   PublisherPtr CreatePublisher(uint8_t msg_type, std::string &topic_name, uint32_t queue_size);
 #endif
@@ -139,6 +152,11 @@ class Lddc final {
   double publish_frq_;
   uint32_t publish_period_ns_;
   std::string frame_id_;
+  bool stabilize_point_cloud_;
+  std::string imu_topic_;
+  Eigen::Quaterniond imu_orientation_;
+  bool imu_ready_;
+  std::mutex imu_orientation_mutex_;
 
 #ifdef BUILDING_ROS1
   bool enable_lidar_bag_;
@@ -153,6 +171,11 @@ class Lddc final {
   PublisherPtr global_pub_;
   PublisherPtr private_imu_pub_[kMaxSourceLidar];
   PublisherPtr global_imu_pub_;
+#ifdef BUILDING_ROS1
+  ros::Subscriber imu_subscriber_;
+#elif defined BUILDING_ROS2
+  rclcpp::Subscription<ImuMsg>::SharedPtr imu_subscriber_;
+#endif
 #endif
 
   livox_ros::DriverNode *cur_node_;
