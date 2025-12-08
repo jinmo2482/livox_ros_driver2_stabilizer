@@ -139,6 +139,16 @@ All internal parameters of Livox_ros_driver2 are in the launch file. Below are d
 
   Other parameters not mentioned in this table are not suggested to be changed unless fully understood.
 
+**Leveled point cloud topic for aerial platforms**
+
+The driver now publishes an additional point cloud topic that automatically levels the Mid360 measurements using the built-in IMU. When IMU data is available, the driver rotates each point so that the gravity vector aligns with the world Z-axis, keeping the point cloud parallel to the ground even if the drone pitches or rolls.
+
+* Default topic name (single topic mode): `/livox/lidar_level`
+* Multi-topic mode name: `/livox/lidar_level_<ip>`
+* Frame ID: `<frame_id>_level` (for example, `livox_frame_level`)
+
+This topic uses the same PointCloud2 field layout as `/livox/lidar`, enabling a drop-in replacement for downstream consumers that expect leveled data.
+
 &ensp;&ensp;&ensp;&ensp;***Livox_ros_driver2 pointcloud data detailed description :***
 
 1. Livox pointcloud2 (PointXYZRTLT) point cloud format, as follows :
