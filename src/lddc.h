@@ -174,7 +174,6 @@ class Lddc final {
   PublisherPtr global_imu_pub_;
   rclcpp::Subscription<ImuMsg>::SharedPtr imu_subscriber_;
 #endif
-#endif
 
   livox_ros::DriverNode *cur_node_;
 };
