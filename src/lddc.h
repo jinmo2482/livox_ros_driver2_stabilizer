@@ -30,6 +30,8 @@
 #include "driver_node.h"
 #include "lds.h"
 
+#include <array>
+
 namespace livox_ros {
 
 /** Send pointcloud message Data to ros subscriber or save them in rosbag file */
@@ -105,10 +107,14 @@ class Lddc final {
   void PublishPclMsg(LidarDataQueue *queue, uint8_t index);
 
   void PublishImuData(LidarImuDataQueue& imu_data_queue, const uint8_t index);
+  void PublishLeveledPointcloud2Data(const uint8_t index, const uint64_t timestamp,
+                                     const PointCloud2& cloud);
+  void PublishLeveledPointcloud2(const StoragePacket& pkg, uint8_t index);
 
   void InitPointcloud2MsgHeader(PointCloud2& cloud);
   void InitPointcloud2Msg(const StoragePacket& pkg, PointCloud2& cloud, uint64_t& timestamp);
   void PublishPointcloud2Data(const uint8_t index, uint64_t timestamp, const PointCloud2& cloud);
+  void ApplyLevelingRotation(uint8_t index, PointCloud2& cloud);
 
   void InitCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg, uint8_t index);
   void FillPointsToCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg);
@@ -129,6 +135,7 @@ class Lddc final {
 #endif
 
   PublisherPtr GetCurrentPublisher(uint8_t index);
+  PublisherPtr GetLeveledPublisher(uint8_t index);
   PublisherPtr GetCurrentImuPublisher(uint8_t index);
 
  private:
@@ -145,17 +152,24 @@ class Lddc final {
   bool enable_imu_bag_;
   PublisherPtr private_pub_[kMaxSourceLidar];
   PublisherPtr global_pub_;
+  PublisherPtr leveled_private_pub_[kMaxSourceLidar];
+  PublisherPtr leveled_global_pub_;
   PublisherPtr private_imu_pub_[kMaxSourceLidar];
   PublisherPtr global_imu_pub_;
   rosbag::Bag *bag_;
 #elif defined BUILDING_ROS2
   PublisherPtr private_pub_[kMaxSourceLidar];
   PublisherPtr global_pub_;
+  PublisherPtr leveled_private_pub_[kMaxSourceLidar];
+  PublisherPtr leveled_global_pub_;
   PublisherPtr private_imu_pub_[kMaxSourceLidar];
   PublisherPtr global_imu_pub_;
 #endif
 
   livox_ros::DriverNode *cur_node_;
+
+  std::array<ImuData, kMaxSourceLidar> latest_imu_data_;
+  std::array<bool, kMaxSourceLidar> imu_data_ready_{};
 };
 
 }  // namespace livox_ros
