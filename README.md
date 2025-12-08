@@ -147,7 +147,7 @@ The driver now publishes an additional point cloud topic that automatically leve
 * Multi-topic mode name: `/livox/lidar_level_<ip>`
 * Frame ID: `<frame_id>_level` (for example, `livox_frame_level`)
 
-This topic uses the same PointCloud2 field layout as `/livox/lidar`, enabling a drop-in replacement for downstream consumers that expect leveled data.
+This topic uses the same PointCloud2 field layout as `/livox/lidar`, enabling a drop-in replacement for downstream consumers that expect leveled data. The leveled PointCloud2 output is published as soon as IMU samples are available, even if the primary output format (`xfer_format`) is set to Livox customized data.
 
 &ensp;&ensp;&ensp;&ensp;***Livox_ros_driver2 pointcloud data detailed description :***
 

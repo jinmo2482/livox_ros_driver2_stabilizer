@@ -229,12 +229,7 @@ void Lddc::PublishPointcloud2(LidarDataQueue *queue, uint8_t index) {
     InitPointcloud2Msg(pkg, cloud, timestamp);
     PublishPointcloud2Data(index, timestamp, cloud);
 
-    if (imu_data_ready_[index]) {
-      PointCloud2 leveled_cloud = cloud;
-      leveled_cloud.header.frame_id = frame_id_ + "_level";
-      ApplyLevelingRotation(index, leveled_cloud);
-      PublishLeveledPointcloud2Data(index, timestamp, leveled_cloud);
-    }
+    PublishLeveledPointcloud2(pkg, index);
   }
 }
 
@@ -251,6 +246,8 @@ void Lddc::PublishCustomPointcloud(LidarDataQueue *queue, uint8_t index) {
     InitCustomMsg(livox_msg, pkg, index);
     FillPointsToCustomMsg(livox_msg, pkg);
     PublishCustomPointData(livox_msg, index);
+
+    PublishLeveledPointcloud2(pkg, index);
   }
 }
 
@@ -393,6 +390,19 @@ void Lddc::PublishLeveledPointcloud2Data(const uint8_t index, const uint64_t tim
     }
 #endif
   }
+}
+
+void Lddc::PublishLeveledPointcloud2(const StoragePacket& pkg, uint8_t index) {
+  if (!imu_data_ready_[index]) {
+    return;
+  }
+
+  PointCloud2 leveled_cloud;
+  uint64_t timestamp = 0;
+  InitPointcloud2Msg(pkg, leveled_cloud, timestamp);
+  leveled_cloud.header.frame_id = frame_id_ + "_level";
+  ApplyLevelingRotation(index, leveled_cloud);
+  PublishLeveledPointcloud2Data(index, timestamp, leveled_cloud);
 }
 
 void Lddc::ApplyLevelingRotation(uint8_t index, PointCloud2& cloud) {
