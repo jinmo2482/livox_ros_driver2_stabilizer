@@ -166,14 +166,12 @@ class Lddc final {
   PublisherPtr private_imu_pub_[kMaxSourceLidar];
   PublisherPtr global_imu_pub_;
   rosbag::Bag *bag_;
+  ros::Subscriber imu_subscriber_;
 #elif defined BUILDING_ROS2
   PublisherPtr private_pub_[kMaxSourceLidar];
   PublisherPtr global_pub_;
   PublisherPtr private_imu_pub_[kMaxSourceLidar];
   PublisherPtr global_imu_pub_;
-#ifdef BUILDING_ROS1
-  ros::Subscriber imu_subscriber_;
-#elif defined BUILDING_ROS2
   rclcpp::Subscription<ImuMsg>::SharedPtr imu_subscriber_;
 #endif
 #endif
