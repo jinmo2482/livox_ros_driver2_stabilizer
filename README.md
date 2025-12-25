@@ -1,147 +1,144 @@
 # Livox ROS Driver 2
 
-Livox ROS Driver 2 is the 2nd-generation driver package used to connect LiDAR products produced by Livox, applicable for ROS (noetic recommended) and ROS2 (foxy or humble recommended).
+Livox ROS Driver 2 是用于连接 Livox 旗下激光雷达产品的第二代驱动包，适用于 ROS（推荐 Noetic）和 ROS2（推荐 Foxy 或 Humble）。
 
-  **Note :**
+**注意：**
 
-  As a debugging tool, Livox ROS Driver is not recommended for mass production but limited to test scenarios. You should optimize the code based on the original source to meet your various needs.
+作为调试工具，Livox ROS Driver 不建议用于量产场景，仅用于测试用途。你应基于原始代码进行优化以满足实际需求。
 
-## 1. Preparation
+## 1. 准备工作
 
-### 1.1 OS requirements
+### 1.1 操作系统要求
 
-  * Ubuntu 18.04 for ROS Melodic;
-  * Ubuntu 20.04 for ROS Noetic and ROS2 Foxy;
-  * Ubuntu 22.04 for ROS2 Humble;
+- Ubuntu 18.04（ROS Melodic）
+- Ubuntu 20.04（ROS Noetic / ROS2 Foxy）
+- Ubuntu 22.04（ROS2 Humble）
 
-  **Tips:**
+**提示：**
 
-  Colcon is a build tool used in ROS2.
+Colcon 是 ROS2 的构建工具。
 
-  How to install colcon: [Colcon installation instructions](https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)
+安装 colcon：<https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html>
 
-### 1.2 Install ROS & ROS2
+### 1.2 安装 ROS & ROS2
 
-For ROS Melodic installation, please refer to:
-[ROS Melodic installation instructions](https://wiki.ros.org/melodic/Installation)
+- ROS Melodic 安装：<https://wiki.ros.org/melodic/Installation>
+- ROS Noetic 安装：<https://wiki.ros.org/noetic/Installation>
+- ROS2 Foxy 安装：<https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html>
+- ROS2 Humble 安装：<https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html>
 
-For ROS Noetic installation, please refer to:
-[ROS Noetic installation instructions](https://wiki.ros.org/noetic/Installation)
+建议选择 Desktop-Full 安装方式。
 
-For ROS2 Foxy installation, please refer to:
-[ROS Foxy installation instructions](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)
+## 2. 编译与运行 Livox ROS Driver 2
 
-For ROS2 Humble installation, please refer to:
-[ROS Humble installation instructions](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
-
-Desktop-Full installation is recommend.
-
-## 2. Build & Run Livox ROS Driver 2
-
-### 2.1 Clone Livox ROS Driver 2 source code:
+### 2.1 克隆源码
 
 ```shell
 git clone https://github.com/Livox-SDK/livox_ros_driver2.git ws_livox/src/livox_ros_driver2
 ```
 
-  **Note :**
+**注意：**
 
-  Be sure to clone the source code in a '[work_space]/src/' folder (as shown above), otherwise compilation errors will occur due to the compilation tool restriction.
+请务必将源码克隆到 `[work_space]/src/` 目录下（如上所示），否则会因为构建工具的限制导致编译错误。
 
-### 2.2 Build & install the Livox-SDK2
+### 2.2 编译并安装 Livox-SDK2
 
-  **Note :**
+**注意：**
 
-  Please follow the guidance of installation in the [Livox-SDK2/README.md](https://github.com/Livox-SDK/Livox-SDK2/blob/master/README.md)
+请参照 <https://github.com/Livox-SDK/Livox-SDK2/blob/master/README.md> 进行安装。
 
-### 2.3 Build the Livox ROS Driver 2:
+### 2.3 编译 Livox ROS Driver 2
 
-#### For ROS (take Noetic as an example):
+#### ROS（以 Noetic 为例）
+
 ```shell
 source /opt/ros/noetic/setup.sh
 ./build.sh ROS1
 ```
 
-#### For ROS2 Foxy:
+#### ROS2 Foxy
+
 ```shell
 source /opt/ros/foxy/setup.sh
 ./build.sh ROS2
 ```
 
-#### For ROS2 Humble:
+#### ROS2 Humble
+
 ```shell
 source /opt/ros/humble/setup.sh
 ./build.sh humble
 ```
 
-### 2.4 Run Livox ROS Driver 2:
+### 2.4 运行 Livox ROS Driver 2
 
-#### For ROS:
+#### ROS
 
 ```shell
 source ../../devel/setup.sh
 roslaunch livox_ros_driver2 [launch file]
 ```
 
-in which,  
+其中：
 
-* **livox_ros_driver2** : is the ROS package name of Livox ROS Driver 2;
-* **[launch file]** : is the ROS launch file you want to use; the 'launch_ROS1' folder contains several launch samples for your reference;  
+- **livox_ros_driver2**：ROS 包名
+- **[launch file]**：启动文件；`launch_ROS1` 目录下提供了多个示例
 
-An rviz launch example for HAP LiDAR would be:
+HAP 雷达的 rviz 启动示例：
 
 ```shell
 roslaunch livox_ros_driver2 rviz_HAP.launch
 ```
 
-#### For ROS2:
+#### ROS2
+
 ```shell
 source ../../install/setup.sh
 ros2 launch livox_ros_driver2 [launch file]
 ```
 
-in which,  
+其中：
 
-* **[launch file]** : is the ROS2 launch file you want to use; the 'launch_ROS2' folder contains several launch samples for your reference.
+- **[launch file]**：ROS2 启动文件；`launch_ROS2` 目录下提供了多个示例
 
-A rviz launch example for HAP LiDAR would be:
+HAP 雷达的 rviz 启动示例：
 
 ```shell
 ros2 launch livox_ros_driver2 rviz_HAP_launch.py
 ```
 
-## 3. Launch file and livox_ros_driver2 internal parameter configuration instructions
+## 3. 启动文件与内部参数说明
 
-### 3.1 Launch file configuration instructions
+### 3.1 启动文件说明
 
-Launch files of ROS are in the "ws_livox/src/livox_ros_driver2/launch_ROS1" directory and launch files of ROS2 are in the "ws_livox/src/livox_ros_driver2/launch_ROS2" directory. Different launch files have different configuration parameter values and are used in different scenarios:
+ROS 启动文件位于 `ws_livox/src/livox_ros_driver2/launch_ROS1`，ROS2 启动文件位于 `ws_livox/src/livox_ros_driver2/launch_ROS2`。不同启动文件对应不同场景：
 
-| launch file name          | Description                                                  |
-| ------------------------- | ------------------------------------------------------------ |
-| rviz_HAP.launch   | Connect to HAP LiDAR device<br>Publish pointcloud2 format  data<br>Autoload rviz |
-| msg_HAP.launch     | Connect to HAP LiDAR device<br>Publish livox customized pointcloud data|
-| rviz_MID360.launch        | Connect to MID360 LiDAR device<br>Publish pointcloud2 format data <br>Autoload rviz|
-| msg_MID360.launch          | Connect to MID360 LiDAR device<br>Publish livox customized pointcloud data |
-| rviz_mixed.launch    | Connect to HAP and MID360 LiDAR device<br>Publish pointcloud2 format data <br>Autoload rviz|
-| msg_mixed.launch      | Connect to HAP and MID360 LiDAR device<br>Publish livox customized pointcloud data |
+| 启动文件名 | 说明 |
+| --- | --- |
+| rviz_HAP.launch | 连接 HAP 雷达<br>发布 pointcloud2 数据<br>自动启动 rviz |
+| msg_HAP.launch | 连接 HAP 雷达<br>发布 Livox 自定义点云 |
+| rviz_MID360.launch | 连接 MID360 雷达<br>发布 pointcloud2 数据<br>自动启动 rviz |
+| msg_MID360.launch | 连接 MID360 雷达<br>发布 Livox 自定义点云 |
+| rviz_mixed.launch | 连接 HAP 与 MID360<br>发布 pointcloud2 数据<br>自动启动 rviz |
+| msg_mixed.launch | 连接 HAP 与 MID360<br>发布 Livox 自定义点云 |
 
-### 3.2 Livox ros driver 2 internal main parameter configuration instructions
+### 3.2 Livox ROS Driver 2 内部主要参数
 
-All internal parameters of Livox_ros_driver2 are in the launch file. Below are detailed descriptions of the three commonly used parameters :
+Livox_ros_driver2 的内部参数全部在启动文件中。以下是常用参数说明：
 
-| Parameter    | Detailed description                                         | Default |
-| ------------ | ------------------------------------------------------------ | ------- |
-| publish_freq | Set the frequency of point cloud publish <br>Floating-point data type, recommended values 5.0, 10.0, 20.0, 50.0, etc. The maximum publish frequency is 100.0 Hz.| 10.0    |
-| multi_topic  | If the LiDAR device has an independent topic to publish pointcloud data<br>0 -- All LiDAR devices use the same topic to publish pointcloud data<br>1 -- Each LiDAR device has its own topic to publish point cloud data | 0       |
-| xfer_format  | Set pointcloud format<br>0 -- Livox pointcloud2(PointXYZRTLT) pointcloud format<br>1 -- Livox customized pointcloud format<br>2 -- Standard pointcloud2 (pcl :: PointXYZI) pointcloud format in the PCL library (just for ROS) | 0       |
+| 参数 | 说明 | 默认值 |
+| --- | --- | --- |
+| publish_freq | 点云发布频率，浮点型，推荐 5.0/10.0/20.0/50.0 等，最大 100.0 Hz | 10.0 |
+| multi_topic | 是否每台雷达使用独立 topic 发布点云<br>0：所有雷达共享一个 topic<br>1：每台雷达一个 topic | 0 |
+| xfer_format | 点云格式<br>0：Livox pointcloud2 (PointXYZRTLT)<br>1：Livox 自定义格式<br>2：PCL PointXYZI 标准格式（仅 ROS） | 0 |
 
-  **Note :**
+**注意：**
 
-  Other parameters not mentioned in this table are not suggested to be changed unless fully understood.
+表中未列出的参数不建议修改，除非已充分理解其含义。
 
-&ensp;&ensp;&ensp;&ensp;***Livox_ros_driver2 pointcloud data detailed description :***
+**Livox_ros_driver2 点云数据格式说明：**
 
-1. Livox pointcloud2 (PointXYZRTLT) point cloud format, as follows :
+1. Livox pointcloud2 (PointXYZRTLT)：
 
 ```c
 float32 x               # X axis, unit:m
@@ -152,11 +149,12 @@ uint8   tag             # livox tag
 uint8   line            # laser number in lidar
 float64 timestamp       # Timestamp of point
 ```
-  **Note :**
 
-  The number of points in the frame may be different, but each point provides a timestamp.
+**注意：**
 
-2. Livox customized data package format, as follows :
+每帧点数可能不同，但每个点都带有时间戳。
+
+2. Livox 自定义数据包格式：
 
 ```c
 std_msgs/Header header     # ROS standard message header
@@ -167,7 +165,7 @@ uint8[3]        rsvd       # Reserved use
 CustomPoint[]   points     # Pointcloud data
 ```
 
-&ensp;&ensp;&ensp;&ensp;Customized Point Cloud (CustomPoint) format in the above customized data package :
+自定义点云（CustomPoint）格式：
 
 ```c
 uint32  offset_time     # offset time relative to the base time
@@ -179,15 +177,15 @@ uint8   tag             # livox tag
 uint8   line            # laser number in lidar
 ```
 
-3. The standard pointcloud2 (pcl :: PointXYZI) format in the PCL library (only ROS can publish):
+3. PCL 标准 pointcloud2 (pcl::PointXYZI)：
 
-&ensp;&ensp;&ensp;&ensp;Please refer to the pcl :: PointXYZI data structure in the point_types.hpp file of the PCL library.
+请参考 PCL 库中的 point_types.hpp 文件。
 
-## 4. LiDAR config
+## 4. LiDAR 配置
 
-LiDAR Configurations (such as ip, port, data type... etc.) can be set via a json-style config file. Config files for single HAP, Mid360 and mixed-LiDARs are in the "config" folder. The parameter naming *'user_config_path'* in launch files indicates such json file path.
+LiDAR 配置（如 ip、端口、数据类型等）通过 json 格式配置文件设置。HAP、MID360 及混合雷达配置文件位于 `config` 目录。启动文件中的 `user_config_path` 指向配置文件。
 
-1. Follow is a configuration example for HAP LiDAR (located in config/HAP_config.json):
+1. HAP 配置示例（config/HAP_config.json）：
 
 ```json
 {
@@ -236,21 +234,21 @@ LiDAR Configurations (such as ip, port, data type... etc.) can be set via a json
 }
 ```
 
-The parameter attributes in the above json file are described in the following table :
+参数说明如下：
 
-**LiDAR configuration parameter**
-| Parameter                  | Type    | Description                                                  | Default         |
-| :------------------------- | ------- | ------------------------------------------------------------ | --------------- |
-| ip             | String  | Ip of the LiDAR you want to config | 192.168.1.100 |
-| pcl_data_type             | Int | Choose the resolution of the point cloud data to send<br>1 -- Cartesian coordinate data (32 bits)<br>2 -- Cartesian coordinate data (16 bits) <br>3 --Spherical coordinate data| 1           |
-| pattern_mode                | Int     | Space scan pattern<br>0 -- non-repeating scanning pattern mode<br>1 -- repeating scanning pattern mode <br>2 -- repeating scanning pattern mode (low scanning rate) | 0               |
-| blind_spot_set (Only for HAP LiDAR)                 | Int     | Set blind spot<br>Range from 50 cm to 200 cm               | 50               |
-| extrinsic_parameter |      | Set extrinsic parameter<br> The data types of "roll" "picth" "yaw" are float <br>  The data types of "x" "y" "z" are int<br>               |
+**LiDAR 配置参数**
 
-For more infomation about the HAP config, please refer to:
-[HAP Config File Description](https://github.com/Livox-SDK/Livox-SDK2/wiki/hap-config-file-description)
+| 参数 | 类型 | 说明 | 默认值 |
+| --- | --- | --- | --- |
+| ip | String | 需要配置的 LiDAR IP | 192.168.1.100 |
+| pcl_data_type | Int | 点云分辨率<br>1：笛卡尔坐标（32 位）<br>2：笛卡尔坐标（16 位）<br>3：球坐标 | 1 |
+| pattern_mode | Int | 扫描模式<br>0：非重复扫描<br>1：重复扫描<br>2：低速重复扫描 | 0 |
+| blind_spot_set（仅 HAP） | Int | 盲区设置，范围 50~200 cm | 50 |
+| extrinsic_parameter |  | 外参设置，roll/pitch/yaw 为 float，x/y/z 为 int |  |
 
-2. When connecting multiple LiDARs, add objects corresponding to different LiDARs to the "lidar_configs" array. Examples of mixed-LiDARs config file contents are as follows :
+更多 HAP 配置说明：<https://github.com/Livox-SDK/Livox-SDK2/wiki/hap-config-file-description>
+
+2. 多雷达配置时，在 `lidar_configs` 中追加不同雷达配置。混合雷达示例：
 
 ```json
 {
@@ -330,9 +328,11 @@ For more infomation about the HAP config, please refer to:
   ]
 }
 ```
-3. when multiple nics on the host connect to multiple LiDARs, you need to add objects corresponding to different LiDARs to the lidar_configs array. Run different luanch files separately, and the following is an example of mixing lidar configuration file contents:
 
-**MID360_config1:**
+3. 主机多网口连接多台雷达时，需要在 `lidar_configs` 中追加对应配置，并分别运行不同启动文件。示例：
+
+**MID360_config1：**
+
 ```json
 {
   "lidar_summary_info" : {
@@ -375,7 +375,9 @@ For more infomation about the HAP config, please refer to:
     ]
 }
 ```
-**MID360_config2:**
+
+**MID360_config2：**
+
 ```json
 {
   "lidar_summary_info" : {
@@ -418,7 +420,9 @@ For more infomation about the HAP config, please refer to:
     ]
 }
 ```
-**Launch1:**
+
+**Launch1：**
+
 ```
 <launch>
     <!--user configure parameters for ros start-->
@@ -465,7 +469,9 @@ For more infomation about the HAP config, please refer to:
 
 </launch>
 ```
-**Launch2:**
+
+**Launch2：**
+
 ```
 <launch>
     <!--user configure parameters for ros start-->
@@ -511,32 +517,31 @@ For more infomation about the HAP config, please refer to:
     </group>
 
 </launch>
-
 ```
 
-## 5. Supported LiDAR list
+## 5. 支持的 LiDAR 列表
 
-* HAP
-* Mid360
-* (more types are comming soon...)
+- HAP
+- Mid360
+- （更多型号持续更新）
 
-## 6. FAQ
+## 6. 常见问题
 
-### 6.1 launch with "livox_lidar_rviz_HAP.launch" but no point cloud display on the grid?
+### 6.1 使用 "livox_lidar_rviz_HAP.launch" 启动后 rviz 无点云显示？
 
-Please check the "Global Options - Fixed Frame" field in the RViz "Display" pannel. Set the field value to "livox_frame" and check the "PointCloud2" option in the pannel.
+请检查 RViz 的 “Global Options - Fixed Frame”，设置为 `livox_frame`，并勾选 “PointCloud2”。
 
-### 6.2 launch with command "ros2 launch livox_lidar_rviz_HAP_launch.py" but cannot open shared object file "liblivox_sdk_shared.so" ?
+### 6.2 使用 "ros2 launch livox_lidar_rviz_HAP_launch.py" 启动后提示找不到 "liblivox_sdk_shared.so"？
 
-Please add '/usr/local/lib' to the env LD_LIBRARY_PATH.
+请将 `/usr/local/lib` 加入环境变量 `LD_LIBRARY_PATH`。
 
-* If you want to add to current terminal:
+- 当前终端生效：
 
   ```shell
   export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
   ```
 
-* If you want to add to current user:
+- 当前用户永久生效：
 
   ```shell
   vim ~/.bashrc
